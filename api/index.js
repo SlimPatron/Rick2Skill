@@ -6,14 +6,29 @@ app.use(express.json());
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args)); 
 
 app.post('/generate-content', async (req, res) => {
-  // Deinen geheimen Key aus den Vercel Environment Variables
   const apiKey = process.env.PERPLEXITY_API_KEY;
-  const { prompt } = req.body;
+  const { skillName, levelTitle, goal, difficulty } = req.body;
 
-  // Validierung (falls prompt fehlt)
-  if (!prompt) {
-    return res.status(400).json({ error: 'Prompt fehlt' });
+  if (!skillName || !levelTitle || !goal || !difficulty) {
+    return res.status(400).json({ error: 'Skilldaten fehlen' });
   }
+
+  const prompt = `
+    Du bist ein Lern-Mentor für "Rick2Skill". Erstelle 3 spannende Aufgaben für "${skillName}" (Level: "${levelTitle}").
+    Nutzer-Ziel: "${goal}". Aktuelle Schwierigkeit (1-10): ${difficulty}.
+    Generiere einen Mix aus diesen Typen:
+    1. "quiz": Multiple Choice.
+    2. "video": YouTube Video ID zu einem passenden Tutorial finden.
+    3. "flashcard": Ein Fakt zum Merken (Vorderseite/Rückseite).
+    4. "challenge": Eine kleine Praxis-Herausforderung.
+    Antworte NUR mit JSON:
+    { "tasks": [
+        { "type": "quiz", "title": "...", "description": "Frage?", "options": ["A","B","C","D"], "correct_answer": 0 },
+        { "type": "video", "title": "...", "description": "...", "video_id": "..." },
+        { "type": "flashcard", "title": "Merkkarte", "front": "Begriff", "back": "Erklärung" },
+        { "type": "challenge", "title": "...", "description": "..." }
+    ]}
+  `;
 
   try {
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -33,7 +48,6 @@ app.post('/generate-content', async (req, res) => {
 
     const data = await response.json();
 
-    // Fehlerbehandlung bei schlechtem API-Response
     if (!response.ok) {
       return res.status(500).json({ error: 'API request failed', details: data });
     }
@@ -43,6 +57,8 @@ app.post('/generate-content', async (req, res) => {
     res.status(500).json({ error: 'Server-Fehler', details: error.message });
   }
 });
+
+
 
 // Für Vercel:
 module.exports = app;
