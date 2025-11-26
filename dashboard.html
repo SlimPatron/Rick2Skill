@@ -171,9 +171,9 @@
         <div class="upgrade-content">
           <i class="fas fa-lock upgrade-icon"></i>
           <h3>Limit erreicht!</h3>
-          <p>Du hast alle 3 Free Skill-Trees erstellt.</p>
+          <p>Du hast alle 2 Free Skill-Trees erstellt.</p>
           <button class="upgrade-btn" onclick="window.location.href='#pricing'">
-            <i class="fas fa-rocket"></i> Upgrade zu Premium
+            <i class="fas fa-rocket"></i> Premium bald verfügbar
           </button>
         </div>
       </div>
@@ -445,7 +445,7 @@
       const plan = (localStorage.getItem("userPlan") || "free").toLowerCase();
       const maxSkillsEl = document.getElementById("maxSkills");
       if (maxSkillsEl) {
-        maxSkillsEl.textContent = plan === "premium" ? "∞" : "3";
+        maxSkillsEl.textContent = plan === "premium" ? "∞" : "2";
       }
 
       let coins = 0;
