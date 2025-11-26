@@ -18,13 +18,13 @@ export default async function handler(req, res) {
     Nutzer-Ziel: "${goal}". Aktuelle Schwierigkeit (1-10): ${difficulty}.
     Generiere einen Mix aus diesen Typen:
     1. "quiz": Multiple Choice.
-    2. "video": YouTube Video ID zu einem passenden Tutorial finden.
+    2. "video": YouTube Video ID zu einem passenden Tutorial finden. Gib nur echte, funktionierende Video-IDs zurück.
     3. "flashcard": Ein Fakt zum Merken (Vorderseite/Rückseite).
     4. "challenge": Eine kleine Praxis-Herausforderung.
     Antworte NUR mit JSON:
     { "tasks": [
         { "type": "quiz", "title": "...", "description": "Frage?", "options": ["A","B","C","D"], "correct_answer": 0 },
-        { "type": "video", "title": "...", "description": "...", "video_id": "..." },
+        { "type": "video", "title": "...", "description": "...", "videoId": "..." },
         { "type": "flashcard", "title": "Merkkarte", "front": "Begriff", "back": "Erklärung" },
         { "type": "challenge", "title": "...", "description": "..." }
     ]}

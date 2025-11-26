@@ -706,6 +706,7 @@
                 modalAction.style.display = 'none';
             } else if (task.type === 'video') {
                 const videoId = task.video_id || task.videoid || task.videoId;
+                console.log('Video-ID für Aufgabe:', videoId);
                 const description = task.description || "";
                 if (!videoId) {
                     modalBody.innerHTML = `
