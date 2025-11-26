@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function: Check if user owns the resource
+    function isOwner(userEmail) {
+      return isAuthenticated() && request.auth.token.email == userEmail;
+    }
+    
+    // Helper function: Validate email format
+    function isValidEmail(email) {
+      return email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+    
+    // Skill Trees Collection
+    match /skilltrees/{skillTreeId} {
+      // Users can only read their own skill trees
+      allow read: if isAuthenticated() && resource.data.user == request.auth.token.email;
+      
+      // Users can create skill trees with their own email
+      allow create: if isAuthenticated() 
+        && request.resource.data.user == request.auth.token.email
+        && isValidEmail(request.resource.data.user)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 200;
+      
+      // Users can only update their own skill trees
+      allow update: if isAuthenticated() 
+        && resource.data.user == request.auth.token.email
+        && request.resource.data.user == resource.data.user; // Prevent email change
+      
+      // Users can only delete their own skill trees
+      allow delete: if isAuthenticated() 
+        && resource.data.user == request.auth.token.email;
+    }
+    
+    // Beta Emails Collection - Public write, Admin read only
+    match /betaEmails/{emailId} {
+      // Anyone can create (for signup forms)
+      allow create: if request.resource.data.email is string
+        && isValidEmail(request.resource.data.email)
+        && request.resource.data.timestamp is string
+        && request.resource.data.source is string
+        && request.resource.data.createdAt is timestamp;
+      
+      // Only authenticated admin users can read
+      // ⚠️ NOTE: You need to set custom claims in Firebase Admin SDK
+      // to mark users as admin. For now, we'll use a simple check.
+      // In production, implement proper admin authentication!
+      allow read: if isAuthenticated();
+      
+      // No updates or deletes allowed
+      allow update, delete: if false;
+    }
+    
+    // Users Collection
+    match /users/{userId} {
+      // Users can only read/update their own data
+      allow read, write: if isAuthenticated() 
+        && request.auth.uid == userId;
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://www.googleapis.com https://*.googleapis.com https://*.firebaseapp.com https://*.firebaseio.com;">
+    <title>Skill Roadmap - Rick2Skill</title>
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- GRUNDLAGEN --- */
+        body {
+            background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
+            font-family: 'Nunito', sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+        }
+        body.skilltree-body {
+            padding-top: 90px;
+        }
+
+        .dashboard-header {
+            position: sticky; top: 0; z-index: 1000; 
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 10px 20px;
+        }
+        body.skilltree-body .dashboard-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+        }
+
+        /* --- ROADMAP LAYOUT --- */
+        .roadmap-wrapper {
+            display: flex; justify-content: center;
+            max-width: 1200px; margin: 0 auto; padding: 40px 20px 120px;
+            gap: 60px; position: relative;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-actions .dark-mode-toggle {
+            border: none;
+            background: rgba(255,255,255,0.25);
+            color: #4b5563;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header-actions .dark-mode-toggle i {
+            font-size: 1rem;
+            color: inherit;
+        }
+
+        [data-theme="dark"] .header-actions .dark-mode-toggle {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+
+        .roadmap-main {
+            flex: 1; max-width: 600px; display: flex; flex-direction: column;
+            align-items: center; position: relative; padding-top: 60px; padding-bottom: 150px;
+            z-index: 1;
+        }
+
+        .path-svg-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; pointer-events: none; overflow: visible;
+        }
+
+        /* LEVEL NODES */
+        .level-node-container {
+            position: relative; margin-bottom: 80px; z-index: 2;
+            display: flex; flex-direction: column; align-items: center;
+            transition: transform 0.3s ease;
+        }
+        .level-node-container:hover { transform: scale(1.05); }
+        .level-node-container:nth-child(4n+2) { transform: translateX(60px); }
+        .level-node-container:nth-child(4n+0) { transform: translateX(-60px); }
+
+        .level-btn {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            border: 5px solid #fff; box-shadow: 0 6px 0 #5a4b9b, 0 12px 20px rgba(0,0,0,0.15);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 2rem; cursor: pointer; position: relative; z-index: 5;
+        }
+        .level-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #5a4b9b; }
+        .level-btn.locked { background: #d1d5db; box-shadow: 0 6px 0 #9ca3af; filter: grayscale(1); cursor: not-allowed; }
+        .level-btn.completed { background: linear-gradient(145deg, #48bb78, #38a169); box-shadow: 0 6px 0 #2f855a; }
+        .level-node-container.boss .level-btn { width: 110px; height: 110px; background: radial-gradient(circle at 30% 30%, #ff5e62, #ff9966); font-size: 3rem; }
+
+        .level-label {
+            margin-top: 12px; background: white; padding: 6px 16px; border-radius: 20px;
+            font-weight: 800; color: #4b5563; font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); white-space: nowrap;
+        }
+                @keyframes coinPop {
+            0% { transform: scale(1); }
+            35% { transform: scale(1.4); color: #f59e0b; }
+            70% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes badgeBounce {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.3) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        
+        /* --- SIDEBAR --- */
+        .roadmap-sidebar {
+            width: 340px; min-width: 300px; position: sticky; 
+            top: 100px; height: fit-content; display: flex; flex-direction: column; gap: 24px; 
+            z-index: 10;
+        }
+        @media (max-width: 900px) {
+            .roadmap-wrapper { flex-direction: column-reverse; align-items: center; }
+            .roadmap-sidebar { width: 100%; max-width: 400px; position: relative; top: 0; }
+            .level-node-container:nth-child(n) { transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            body.skilltree-body {
+                padding-top: 70px;
+            }
+            .dashboard-header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+            }
+            .header-content {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.75rem;
+                text-align: center;
+            }
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .header-actions a {
+                width: 100%;
+                text-align: center;
+            }
+            .roadmap-wrapper {
+                padding: 20px 16px 80px;
+                gap: 30px;
+            }
+            .roadmap-main {
+                max-width: 100%;
+                padding-top: 20px;
+                padding-bottom: 100px;
+            }
+            .level-node-container {
+                width: 100%;
+                margin-bottom: 30px;
+                transform: none !important;
+                align-items: center;
+                text-align: center;
+            }
+            .level-node-container .task-popover {
+                position: static;
+                top: auto;
+                left: auto !important;
+                right: auto !important;
+                transform: none !important;
+                opacity: 1;
+                pointer-events: auto;
+                width: min(95%, 420px);
+                margin: 12px auto 0;
+                text-align: center;
+                padding: 18px;
+                box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+                border-radius: 18px;
+                display: none;
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+                background: #fff;
+            }
+            .level-node-container .task-popover.active {
+                display: flex;
+            }
+            .task-popover::before {
+                display: none;
+            }
+            .level-node-container .task-popover h3 {
+                width: 100%;
+                text-align: center;
+            }
+            .level-node-container .task-item,
+            .level-node-container .task-popover button,
+            .level-node-container .task-popover p {
+                width: 100%;
+            }
+            .level-node-container .task-item {
+                justify-content: center;
+                text-align: center;
+                flex-wrap: wrap;
+            }
+            .roadmap-sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+            }
+        }
+        @media (max-width: 600px) {
+            .dashboard-header .header-content {
+                flex-direction: column;
+                gap: 0.75rem;
+                text-align: center;
+            }
+            .dashboard-header a {
+                width: 100%;
+                text-align: center;
+            }
+            .roadmap-main {
+                padding-top: 10px;
+            }
+        }
+
+        .sidebar-card {
+            background: white; border-radius: 24px; padding: 28px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.03); text-align: center;
+        }
+        .mini-stats { display: flex; justify-content: space-around; margin-top: 20px; border-top: 2px solid #f3f4f6; padding-top: 20px; }
+        .mini-stat-item { display: flex; flex-direction: column; gap: 5px; }
+        .mini-stat-val { font-weight: 900; color: #4b5563; font-size: 1.1rem; }
+        .mini-stat-label { font-size: 0.8rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Progress Bar */
+        .level-progress-container { margin-top: 15px; text-align: left; }
+        .level-progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-top: 5px; }
+        .level-progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease; }
+        .level-progress-text { font-size: 0.8rem; color: #6b7280; display: flex; justify-content: space-between; }
+
+        /* Flashcard Deck Card */
+        .flashcard-deck-card {
+            background: linear-gradient(135deg, #fce043 0%, #fb7ba2 100%); color: white;
+            padding: 20px; border-radius: 20px; cursor: pointer; transition: transform 0.2s; text-align: center;
+        }
+        .flashcard-deck-card:hover { transform: scale(1.03); }
+        .flashcard-deck-card h4 { margin: 0 0 5px 0; font-size: 1.2rem; }
+        .flashcard-deck-card p { margin: 0; font-size: 0.9rem; opacity: 0.9; }
+
+        /* --- POPOVER (Aufgaben Liste) --- */
+        .task-popover {
+            position: absolute; top: 50%; 
+            /* Standard: Rechts aufklappen */
+            left: 100px; right: auto;
+            transform: translateY(-50%) scale(0.9);
+            background: white; width: 280px; padding: 20px; border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2); z-index: 999;
+            opacity: 0; pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .task-popover.active { opacity: 1; pointer-events: all; transform: translateY(-50%) scale(1); }
+        /* Wenn Popover links ist */
+        .task-popover.pop-left { left: auto; right: 100px; }
+        
+        /* Pfeil */
+        .task-popover::before {
+            content: ''; position: absolute; top: 50%; left: -10px; transform: translateY(-50%);
+            border-width: 10px 10px 10px 0; border-style: solid; border-color: transparent white transparent transparent;
+        }
+        .task-popover.pop-left::before {
+            left: auto; right: -10px; border-width: 10px 0 10px 10px; border-color: transparent transparent transparent white;
+        }
+
+        .task-item {
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 14px 18px;
+            margin-bottom: 12px; text-align: left; font-weight: 700; color: #374151; cursor: pointer;
+            display: flex; align-items: center; gap: 14px; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .task-item:hover { border-color: #667eea; transform: translateY(-2px); box-shadow: 0 5px 12px rgba(102, 126, 234, 0.15); }
+        .task-item.done { background: #f0fdf4; border-color: #48bb78; color: #166534; opacity: 0.8; }
+        .task-item i { font-size: 1.2rem; color: #9ca3af; }
+        .task-item.done i { color: #48bb78; }
+
+        /* --- MODAL --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .modal-content { background: white; width: 90%; max-width: 600px; padding: 40px; border-radius: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.3); position: relative; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUp { from { transform: translateY(40px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+        .modal-close { position: absolute; right: 25px; top: 25px; font-size: 1.8rem; cursor: pointer; background: none; border: none; color: #9ca3af; }
+        .modal-title { margin-top: 0; color: #111827; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
+        .modal-body { margin: 25px 0; color: #4b5563; line-height: 1.7; font-size: 1.15rem; }
+        .modal-action { width: 100%; padding: 16px; background: linear-gradient(135deg, #48bb78 0%, #34d399 100%); color: white; border: none; border-radius: 16px; font-weight: 800; font-size: 1.1rem; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3); transition: transform 0.2s; }
+        .modal-action:hover { transform: translateY(-2px); }
+
+        /* Quiz */
+        .quiz-option { width: 100%; padding: 16px 20px; margin-bottom: 12px; border-radius: 16px; border: 2px solid #e5e7eb; background: #fff; cursor: pointer; text-align: left; font-size: 1.05rem; font-weight: 600; color: #374151; transition: all 0.2s; }
+        .quiz-option:hover { border-color: #667eea; background: #f5f7ff; color: #4338ca; }
+
+        /* Flashcards */
+        .flashcard { width: 100%; height: 200px; perspective: 1000px; cursor: pointer; margin-bottom: 20px; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; border-radius: 16px; padding: 20px; text-align: center; font-size: 1.3rem; font-weight: bold; }
+        .flashcard-front { background: #f3f4f6; color: #1f2937; border: 2px solid #e5e7eb; }
+        .flashcard-back { background: #eef2ff; color: #4338ca; border: 2px solid #667eea; transform: rotateY(180deg); }
+    </style>
+</head>
+<body class="skilltree-body">
+    <header class="dashboard-header">
+        <div class="header-content" style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="logo" onclick="location.href='dashboard.html'" style="cursor:pointer; display:flex; align-items:center; gap:10px;">
+            <img src="rick-happy-removebg.png" alt="Rick" style="height:40px;" />
+            <h1 style="font-size:1.5rem; margin:0;">Rick<span style="color:#667eea;">2</span>Skill</h1>
+          </div>
+          <div class="header-actions" style="display:flex; align-items:center; gap:10px;">
+            <button class="dark-mode-toggle" id="skilltreeDarkToggle" type="button" onclick="toggleDarkMode()" aria-label="Dark Mode umschalten" style="width:42px; height:42px;">
+                <i class="fas fa-moon"></i>
+            </button>
+            <a href="dashboard.html" style="text-decoration: none; color:#4b5563; font-weight:bold; padding: 8px 16px; background:#f3f4f6; border-radius:20px;">
+               <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+          </div>
+        </div>
+    </header>
+
+    <div class="roadmap-wrapper">
+        <div class="roadmap-main" id="roadmapLevels">
+            <!-- Levels werden hier gerendert -->
+        </div>
+
+        <div class="roadmap-sidebar">
+            <div class="sidebar-card">
+                <div id="skillEmojiSidebar" style="font-size: 4rem; margin-bottom: 10px;">🚀</div>
+                <h2 id="skillTitleSidebar" style="margin:0; color:#1f2937;">Laden...</h2>
+                <p style="color:#9ca3af; font-size:0.9rem; margin-top:5px;">Dein persönlicher Skill-Tree</p>
+                
+                <div class="level-progress-container">
+                    <div class="level-progress-text"><span>Level Fortschritt</span><span id="levelProgressPercent">0%</span></div>
+                    <div class="level-progress-bar"><div class="level-progress-fill" id="levelProgressBar"></div></div>
+                </div>
+
+                <div class="mini-stats">
+                    <div class="mini-stat-item">
+                        <span class="mini-stat-val" id="sidebarStreak" style="color:#ef4444;">🔥 0</span>
+                        <span class="mini-stat-label">Streak</span>
+                    </div>
+                    <div class="mini-stat-item">
+                        <span class="mini-stat-val" id="sidebarCoins"><i class="fas fa-coins" style="color: #f59e0b;"></i> 0</span>
+                        <span class="mini-stat-label">Coins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FLASHCARD BOX -->
+            <div class="sidebar-card flashcard-deck-card" onclick="window.showFlashcardDeck()">
+                <h4><i class="fas fa-layer-group"></i> Deine Lernkarten</h4>
+                <p><span id="flashcard-count">0</span> Karten gesammelt</p>
+            </div>
+
+            <div class="sidebar-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div style="display:flex; align-items:center; gap:15px; text-align:left;">
+                    <img src="magic_sloth_zaubernd.jpg" style="width:60px; border-radius:12px; border:2px solid #fff;">
+                    <div>
+                        <h4 style="margin:0; font-size:1.1rem;">Rick sagt:</h4>
+                        <p style="margin:5px 0 0 0; font-size:0.85rem; opacity:0.9;">"Wubba Lubba Dub Dub! Lern was!"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="window.closeTaskModal()">&times;</button>
+            <h2 class="modal-title" id="modalTaskTitle">Aufgabe</h2>
+            <div class="modal-body" id="modalTaskDesc">...</div>
+            <button class="modal-action" onclick="window.completeTask()">Aufgabe abschließen! 🎉</button>
+        </div>
+    </div>
+
+    <!-- Beta Popup -->
+    <div id="betaPopup" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="window.closeBetaPopup()">&times;</button>
+            <h2 class="modal-title">🎉 Beta-Version</h2>
+            <div class="modal-body">
+                <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+                    Du hast das 30% Limit erreicht! Das ist eine Beta-Version.
+                </p>
+                <p style="margin-bottom: 1.5rem;">
+                    Trage deine E-Mail ein, damit du Bescheid bekommst, wenn die Vollversion launched:
+                </p>
+                <input 
+                    type="email" 
+                    id="betaEmailInput" 
+                    placeholder="deine@email.de" 
+                    style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 1rem; margin-bottom: 1rem;"
+                />
+                <button 
+                    class="modal-action" 
+                    onclick="window.submitBetaEmail()"
+                    style="width: 100%; margin-bottom: 1rem;"
+                >
+                    E-Mail eintragen 📧
+                </button>
+                <button 
+                    onclick="window.sendFeedback()"
+                    style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;"
+                >
+                    Feedback senden 💬
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, arrayUnion, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase Config (public - security via Firestore Rules)
+        const firebaseConfig = {
+          apiKey: "AIzaSyDF2qsdE0bbpI_ANm5Goh0SmoWarrzOGYQ",
+          authDomain: "road2skill-af55a.firebaseapp.com",
+          projectId: "road2skill-af55a",
+          storageBucket: "road2skill-af55a.firebasestorage.app",
+          messagingSenderId: "533346184642",
+          appId: "1:533346184642:web:fe1d644238b6b1ef85fa5b",
+        };
+        
+        // Import utilities for security (dynamically)
+        let sanitizeInput, isValidEmail;
+        try {
+          const utils = await import('./utils.js');
+          sanitizeInput = utils.sanitizeInput;
+          isValidEmail = utils.isValidEmail;
+        } catch (e) {
+          // Fallback if utils.js not available
+          sanitizeInput = (str, max) => (typeof str === 'string' ? str.trim().replace(/[<>]/g, '').substring(0, max || 1000) : '');
+          isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const params = new URLSearchParams(window.location.search);
+        const skillId = params.get("id");
+        let currentSkillData = null;
+        let collectedFlashcards = [];
+
+        const DEFAULT_LEVELS = [
+            { id: 1, title: "Grundlagen I", status: "current", tasks: [] },
+            { id: 2, title: "Grundlagen II", status: "locked", tasks: [] },
+            { id: 3, title: "Grundlagen III", status: "locked", tasks: [] },
+            { id: 4, title: "Vertiefung I", status: "locked", tasks: [] },
+            { id: 5, title: "Vertiefung II", status: "locked", tasks: [] },
+            { id: 6, title: "Vertiefung III", status: "locked", tasks: [] },
+            { id: 7, title: "Praxis I", status: "locked", tasks: [] },
+            { id: 8, title: "Praxis II", status: "locked", tasks: [] },
+            { id: 9, title: "Praxis III", status: "locked", tasks: [] },
+            { id: 10, title: "BOSS BATTLE", status: "locked", tasks: [], type: "boss" }
+        ];
+        const DAILY_LIMIT = 10;
+
+        async function ensureUserDailyProgress(today) {
+            if (!auth.currentUser) return { userRef: null, dailyTasks: { date: today, count: 0 } };
+            const userRef = doc(db, 'users', auth.currentUser.uid);
+            let dailyTasks = { date: today, count: 0 };
+
+            try {
+                const userDoc = await getDoc(userRef);
+                if (userDoc.exists()) {
+                    const data = userDoc.data() || {};
+                    if (data.dailyTasksCompleted) {
+                        dailyTasks = data.dailyTasksCompleted;
+                    }
+                } else {
+                    await setDoc(userRef, { dailyTasksCompleted: dailyTasks }, { merge: true });
+                }
+            } catch (error) {
+                console.warn("Daily progress init failed:", error);
+                await setDoc(userRef, { dailyTasksCompleted: dailyTasks }, { merge: true });
+            }
+
+            if (dailyTasks.date !== today) {
+                dailyTasks = { date: today, count: 0 };
+            }
+
+            return { userRef, dailyTasks };
+        }
+
+        async function loadPage() {
+            if(!skillId) return;
+            const docRef = doc(db, "skilltrees", skillId);
+            const snap = await getDoc(docRef);
+            if(!snap.exists()) return;
+
+            currentSkillData = snap.data();
+            if(currentSkillData.coins === undefined) currentSkillData.coins = 0;
+            if(currentSkillData.streak === undefined) currentSkillData.streak = 0;
+            if(currentSkillData.difficulty === undefined) currentSkillData.difficulty = 1;
+            
+            if(!currentSkillData.levels) {
+                await updateDoc(docRef, { levels: DEFAULT_LEVELS, coins: 0, streak: 0, difficulty: 1 });
+                currentSkillData.levels = DEFAULT_LEVELS;
+            }
+            
+            // Flashcards laden
+            collectedFlashcards = currentSkillData.flashcards || [];
+            
+            updateUI();
+            renderRoadmap(currentSkillData.levels);
+        }
+
+        function updateUI() {
+            document.getElementById("skillTitleSidebar").textContent = currentSkillData.name;
+            document.getElementById("skillEmojiSidebar").textContent = currentSkillData.emoji || "🚀";
+            document.getElementById("sidebarCoins").innerHTML = `<i class="fas fa-coins" style="color: #f59e0b;"></i> ${currentSkillData.coins}`;
+            document.getElementById("sidebarStreak").textContent = `🔥 ${currentSkillData.streak}`;
+            document.getElementById("flashcard-count").textContent = collectedFlashcards.length;
+
+            const totalLevels = currentSkillData.levels.length;
+            const completedLevels = currentSkillData.levels.filter(l => l.status === 'completed').length;
+            let progress = Math.round((completedLevels / totalLevels) * 100);
+            
+            // Beta-Limit: Maximal 30% Fortschritt
+            const BETA_LIMIT = 30;
+            if (progress > BETA_LIMIT) {
+                progress = BETA_LIMIT;
+            }
+            
+            document.getElementById("levelProgressBar").style.width = `${progress}%`;
+            document.getElementById("levelProgressPercent").textContent = `${progress}%`;
+            
+            // Zeige Beta-Popup wenn 30% erreicht
+            if (progress >= BETA_LIMIT && !localStorage.getItem(`betaPopupShown_${skillId}`)) {
+                setTimeout(() => showBetaPopup(), 500);
+                localStorage.setItem(`betaPopupShown_${skillId}`, 'true');
+            }
+        }
+
+        function renderRoadmap(levels) {
+            const container = document.getElementById("roadmapLevels");
+            container.innerHTML = `<div class="path-svg-container"><svg width="100%" height="100%"><path id="curvedPath" d="" stroke="#e5e7eb" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="15, 25"/></svg></div>`;
+            
+            levels.forEach((lvl, index) => {
+                const node = document.createElement("div");
+                node.className = `level-node-container ${lvl.type === 'boss' ? 'boss' : ''}`;
+                let icon = 'fa-star';
+                if(lvl.status === 'locked') icon = 'fa-lock';
+                if(lvl.status === 'completed') icon = 'fa-check';
+                if(lvl.type === 'boss') icon = 'fa-skull';
+                
+                let tasksHTML = "";
+                if (lvl.tasks && lvl.tasks.length > 0) {
+                    tasksHTML = lvl.tasks.map((t, tIdx) => {
+                        let taskIcon = 'circle';
+                        if (t.type === 'quiz') taskIcon = 'question-circle';
+                        if (t.type === 'video') taskIcon = 'play-circle';
+                        if (t.type === 'flashcard') taskIcon = 'layer-group';
+                        if (t.completed) taskIcon = 'check-circle';
+                        
+                        return `<div class="task-item ${t.completed ? 'done' : ''}" onclick="window.openTaskContent(${index}, ${tIdx})">
+                            <i class="fas fa-${taskIcon}" style="color:${t.completed ? '#48bb78' : '#667eea'}"></i> ${t.title}
+                        </div>`;
+                    }).join('');
+                } else if (lvl.status !== 'locked') {
+                    tasksHTML = `<button onclick="window.generateContentForLevel(${index})" style="width:100%; padding:12px; background: linear-gradient(90deg, #667eea, #764ba2); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold;"><i class="fas fa-magic"></i> Aufgaben generieren</button>`;
+                } else {
+                    tasksHTML = '<p style="color:#999; font-size:0.9rem;">Erst vorheriges Level abschließen.</p>';
+                }
+                
+                node.innerHTML = `<div class="level-btn ${lvl.status}" onclick="window.togglePopover('pop-${lvl.id}')"><i class="fas ${icon}"></i></div><div class="level-label">${lvl.title}</div><div class="task-popover" id="pop-${lvl.id}"><h3 style="margin:0 0 15px 0; color:#1f2937;">${lvl.title}</h3><div id="content-area-${index}">${tasksHTML}</div></div>`;
+                container.appendChild(node);
+            });
+            setTimeout(drawPath, 100);
+                        // 🔒 Stufe 2 - Locked für zukünftige Levels
+            const nextStageContainer = document.createElement('div');
+            nextStageContainer.className = 'next-stage-locked';
+            nextStageContainer.style.cssText = `
+                text-align: center;
+                padding: 40px 20px;
+                margin-top: 60px;
+                background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(79, 70, 229, 0.1));
+                border-radius: 20px;
+                border: 2px dashed rgba(147, 51, 234, 0.3);
+            `;
+            nextStageContainer.innerHTML = `
+                <i class="fas fa-lock" style="font-size: 48px; color: #9333ea; margin-bottom: 15px;"></i>
+                <h3 style="margin: 10px 0; color: #9333ea;">Stufe 2</h3>
+                <p style="color: #6b7280; font-size: 14px;">
+                    Schließe alle Level 1-10 ab, um die nächsten 10 Levels freizuschalten!
+                </p>
+            `;
+            
+            // Prüfe, ob Boss-Level abgeschlossen ist
+            const bossLevel = currentSkillData.levels[9]; // Level 10 (Index 9)
+            if (bossLevel && bossLevel.tasks.every(t => t.completed)) {
+                nextStageContainer.style.background = 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1))';
+                nextStageContainer.innerHTML = `
+                    <i class="fas fa-unlock" style="font-size: 48px; color: #10b981; margin-bottom: 15px;"></i>
+                    <h3 style="margin: 10px 0; color: #10b981;">Stufe 2 Freigeschaltet! 🎉</h3>
+                    <p style="color: #6b7280; font-size: 14px;">
+                        Die nächsten 10 Levels sind nun verfügbar.
+                    </p>
+                `;
+            }
+            
+            document.querySelector('.roadmap-main').appendChild(nextStageContainer);
+
+        }
+
+        window.generateContentForLevel = async function(levelIndex) {
+            const level = currentSkillData.levels[levelIndex];
+            const skillName = currentSkillData.name;
+            const contentArea = document.getElementById(`content-area-${levelIndex}`);
+            const userGoal = currentSkillData.goal || "Allgemeines Interesse";
+            const difficulty = currentSkillData.difficulty || 1;
+
+            contentArea.innerHTML = `<div style="text-align:center; color:#667eea; padding:20px;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Rick erstellt Aufgaben (Stufe ${Math.round(difficulty)})...</div>`;
+
+            const prompt = `
+                Du bist ein Lern-Mentor für "Rick2Skill". Erstelle 3 spannende Aufgaben für "${skillName}" (Level: "${level.title}").
+                Nutzer-Ziel: "${userGoal}". Aktuelle Schwierigkeit (1-10): ${difficulty}.
+                
+                Generiere einen Mix aus diesen Typen:
+                1. "quiz": Multiple Choice.
+                2. "video": YouTube Video ID zu einem passenden Tutorial finden.
+                3. "flashcard": Ein Fakt zum Merken (Vorderseite/Rückseite).
+                4. "challenge": Eine kleine Praxis-Herausforderung.
+
+                Antworte NUR mit JSON:
+                { "tasks": [
+                    { "type": "quiz", "title": "...", "description": "Frage?", "options": ["A","B","C","D"], "correct_answer": 0 },
+                    { "type": "video", "title": "...", "description": "...", "video_id": "..." },
+                    { "type": "flashcard", "title": "Merkkarte", "front": "Begriff", "back": "Erklärung" },
+                    { "type": "challenge", "title": "...", "description": "..." }
+                ]}
+            `;
+
+            try {
+                // Sanitize inputs
+                const sanitizedSkillName = sanitizeInput(skillName, 200);
+                const sanitizedLevelTitle = sanitizeInput(level.title, 200);
+                const sanitizedGoal = sanitizeInput(userGoal, 200);
+
+                // ⚡️ Sicheren Backend-Proxy aufrufen (keine API-Keys im Frontend!)
+                const response = await fetch('https://api-proxy-ecru.vercel.app/generate-content', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // Falls du später eine Benutzer-Authentifizierung einbauen willst:
+                        // 'Authorization': `Bearer ${await auth.currentUser.getIdToken()}`
+                    },
+                    body: JSON.stringify({
+                        skillName: sanitizedSkillName,
+                        levelTitle: sanitizedLevelTitle,
+                        goal: sanitizedGoal,
+                        difficulty: difficulty
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Fehler vom Backend-Proxy: ' + await response.text());
+                }
+
+                const result = await response.json();
+
+                // Beispiel: Aufgaben und Roadmap aktualisieren
+                currentSkillData.levels[levelIndex].tasks = result.tasks.map(t => ({...t, completed: false}));
+                await updateDoc(doc(db, "skilltrees", skillId), { levels: currentSkillData.levels });
+                renderRoadmap(currentSkillData.levels);
+
+            } catch (error) { 
+                console.error("Fehler:", error); 
+                contentArea.innerHTML = `<p style="color:red; font-size:0.9rem;"><b>Fehler:</b><br>${sanitizeInput(error.message, 200)}</p>`; 
+            }
+
+        };
+
+        let activeTask = null;
+        window.openTaskContent = (levelIndex, taskIndex) => {
+            activeTask = { l: levelIndex, t: taskIndex };
+            const task = currentSkillData.levels[levelIndex].tasks[taskIndex];
+            document.getElementById('modalTaskTitle').textContent = task.title;
+            const modalBody = document.getElementById('modalTaskDesc');
+            const modalAction = document.querySelector('.modal-action');
+            modalAction.style.display = 'block';
+            modalAction.textContent = "Aufgabe abschließen! 🎉";
+
+            if (task.type === 'quiz') {
+                const optionsHTML = task.options.map((op, idx) => `<button class="quiz-option" onclick="window.checkAnswer(${idx === task.correct_answer}, this)">${op}</button>`).join('');
+                modalBody.innerHTML = `<p style="font-weight:bold; font-size:1.2rem; margin-bottom:20px;">${task.description}</p><div id="quiz-options">${optionsHTML}</div>`;
+                modalAction.style.display = 'none';
+            } else if (task.type === 'video') {
+                const videoId = task.video_id || task.videoid || task.videoId;
+                const description = task.description || "";
+                if (!videoId) {
+                    modalBody.innerHTML = `
+                        <p>${description}</p>
+                        <div style="padding:20px; background:#fee; border-radius:8px; color:#c33; margin-top:15px;">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            <strong>Video nicht verfügbar</strong><br>
+                            Keine gültige Video-ID vorhanden.
+                        </div>
+                    `;
+                } else {
+                    fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`)
+                        .then(res => {
+                            if (!res.ok) throw new Error('Video nicht verfügbar');
+                            return res.json();
+                        })
+                        .then(() => {
+                            modalBody.innerHTML = `
+                                <p>${description}</p>
+                                <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:12px; margin-top:15px;">
+                                    <iframe style="position:absolute; top:0; left:0; width:100%; height:100%;" 
+                                        src="https://www.youtube.com/embed/${videoId}" 
+                                        frameborder="0" allowfullscreen></iframe>
+                                </div>
+                            `;
+                        })
+                        .catch(() => {
+                            modalBody.innerHTML = `
+                                <p>${description}</p>
+                                <div style="padding:20px; background:#fee; border-radius:8px; color:#c33; margin-top:15px;">
+                                    <i class="fas fa-exclamation-triangle"></i> 
+                                    <strong>Video nicht verfügbar</strong><br>
+                                    Dieses YouTube-Video existiert nicht oder wurde entfernt.
+                                </div>
+                            `;
+                        });
+                }
+            } else if (task.type === 'flashcard') {
+                modalBody.innerHTML = `<div class="flashcard" onclick="this.classList.toggle('flipped')"><div class="flashcard-inner"><div class="flashcard-front">${task.front}</div><div class="flashcard-back">${task.back}</div></div></div><p style="text-align:center; color:#666;">(Klicken zum Umdrehen)</p>`;
+            } else { 
+                modalBody.innerHTML = `<p>${task.description.replace(/\n/g, '<br>')}</p>`; 
+            }
+            document.getElementById('taskModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.checkAnswer = (isCorrect, btnEl) => {
+            document.querySelectorAll('.quiz-option').forEach(btn => btn.disabled = true);
+            if (isCorrect) {
+                btnEl.style.background = '#48bb78'; btnEl.style.color = 'white'; btnEl.style.borderColor = '#48bb78';
+                setTimeout(() => window.completeTask(true), 800);
+            } else {
+                btnEl.style.background = '#ef4444'; btnEl.style.color = 'white'; btnEl.style.borderColor = '#ef4444';
+                const correct = currentSkillData.levels[activeTask.l].tasks[activeTask.t].correct_answer;
+                document.querySelectorAll('.quiz-option')[correct].style.background = '#e5e7eb';
+                setTimeout(() => { closeTaskModal(); alert("Falsch! Versuch's später nochmal."); }, 1500);
+            }
+        };
+
+        window.closeTaskModal = () => { 
+            document.getElementById('taskModal').style.display = 'none'; 
+            document.getElementById('modalTaskDesc').innerHTML = '...'; 
+            document.body.style.overflow = 'auto';
+        };
+
+        window.completeTask = async (fromQuiz = false) => {
+            if(!activeTask) return;
+            const today = new Date().toDateString();
+            let userRef = null;
+            let dailyTasks = { date: today, count: 0 };
+
+            try {
+                const ensured = await ensureUserDailyProgress(today);
+                userRef = ensured.userRef;
+                dailyTasks = ensured.dailyTasks;
+                if (dailyTasks.count >= DAILY_LIMIT) {
+                    alert('⏰ Tageslimit erreicht!\n\nDu hast heute bereits 10 Aufgaben erledigt. Komm morgen wieder, um weiterzumachen! 🚀');
+                    return;
+                }
+            } catch (error) {
+                console.warn('Konnte Tageslimit nicht prüfen:', error);
+            }
+
+            const task = currentSkillData.levels[activeTask.l].tasks[activeTask.t];
+            
+            if (!task.completed) {
+                task.completed = true;
+                // ✨ Animation für Münzen und XP
+                const coinsElement = document.getElementById('sidebarCoins');
+                if (coinsElement) {
+                    coinsElement.style.animation = 'none';
+                    setTimeout(() => {
+                        coinsElement.style.animation = 'coinPop 0.6s ease-out';
+                    }, 10);
+                }
+                
+                const xpElement = document.getElementById('sidebarXP');
+                if (xpElement) {
+                    xpElement.style.animation = 'none';
+                    setTimeout(() => {
+                        xpElement.style.animation = 'coinPop 0.6s ease-out';
+                    }, 10);
+                }
+
+                const newDifficulty = Math.min((currentSkillData.difficulty || 1) + 0.1, 10);
+                
+                const updateData = { 
+                    levels: currentSkillData.levels, 
+                    coins: increment(10), 
+                    xp: increment(20), 
+                    difficulty: newDifficulty,
+                    tasksCompleted: increment(1)
+                };
+                
+                if (task.type === 'flashcard') {
+                    updateData.flashcards = arrayUnion({ front: task.front, back: task.back });
+                    if(!currentSkillData.flashcards) currentSkillData.flashcards = [];
+                    currentSkillData.flashcards.push({ front: task.front, back: task.back });
+                    collectedFlashcards = currentSkillData.flashcards;
+                }
+                // ✅ Counter für Tageslimit erhöhen
+                dailyTasks.count += 1;
+                try {
+                    if (userRef) {
+                        await updateDoc(userRef, {
+                            dailyTasksCompleted: dailyTasks
+                        });
+                    }
+                } catch (error) {
+                    console.warn('Konnte Tagesfortschritt nicht speichern:', error);
+                }
+
+                try {
+                    await updateDoc(doc(db, "skilltrees", skillId), updateData);
+                } catch (error) {
+                    console.error('Konnte Aufgabe nicht speichern:', error);
+                    alert('Fehler beim Speichern der Aufgabe. Versuche es später erneut.');
+                    task.completed = false;
+                    return;
+                }
+                currentSkillData.coins += 10;
+                currentSkillData.xp += 20;
+                currentSkillData.tasksCompleted = (currentSkillData.tasksCompleted || 0) + 1;
+                currentSkillData.difficulty = newDifficulty;
+            }
+            
+            if(!fromQuiz) closeTaskModal();
+            updateUI();
+            await checkLevelCompletion(activeTask.l);
+            renderRoadmap(currentSkillData.levels);
+            if(fromQuiz) setTimeout(() => closeTaskModal(), 500);
+        };
+
+        async function checkLevelCompletion(levelIndex) {
+            const level = currentSkillData.levels[levelIndex];
+            if (!level.tasks || level.tasks.length === 0) return;
+            const allDone = level.tasks.every(t => t.completed);
+            if (allDone && level.status !== 'completed') {
+                // Prüfe Beta-Limit (30%)
+                const totalLevels = currentSkillData.levels.length;
+                const completedLevels = currentSkillData.levels.filter(l => l.status === 'completed').length;
+                const newProgress = Math.round(((completedLevels + 1) / totalLevels) * 100);
+                
+                if (newProgress > 30) {
+                    alert('🎯 Beta-Limit erreicht!\n\nDu hast das 30% Limit erreicht. Die Vollversion kommt bald mit unbegrenztem Fortschritt!');
+                    showBetaPopup();
+                    return; // Verhindere Level-Abschluss
+                }
+                
+                alert(`🎉 Level "${level.title}" abgeschlossen! 🎉`);
+                currentSkillData.levels[levelIndex].status = 'completed';
+                if (levelIndex + 1 < currentSkillData.levels.length) {
+                    currentSkillData.levels[levelIndex+1].status = 'current';
+                }
+                await updateDoc(doc(db, "skilltrees", skillId), { levels: currentSkillData.levels });
+            }
+        }
+        
+        function showBetaPopup() {
+            const popup = document.getElementById('betaPopup');
+            if (popup) {
+                popup.style.display = 'flex';
+            }
+        }
+        
+        window.closeBetaPopup = function() {
+            document.getElementById('betaPopup').style.display = 'none';
+        }
+        
+        window.submitBetaEmail = async function() {
+            const emailInput = document.getElementById('betaEmailInput');
+            const email = sanitizeInput(emailInput.value.trim(), 100);
+            
+            // Validate email
+            if (!email || !isValidEmail(email)) {
+                alert('Bitte gib eine gültige E-Mail-Adresse ein.');
+                return;
+            }
+            
+            try {
+                // Prüfe ob E-Mail bereits existiert
+                const q = query(collection(db, "betaEmails"), where("email", "==", email));
+                const snapshot = await getDocs(q);
+                
+                if (!snapshot.empty) {
+                    alert('📧 Diese E-Mail ist bereits eingetragen!');
+                    emailInput.value = '';
+                    return;
+                }
+                
+                // Sanitize skill name
+                const skillName = sanitizeInput(currentSkillData.name || '', 200);
+                
+                // Speichere in Firestore
+                await addDoc(collection(db, "betaEmails"), {
+                    email: email,
+                    timestamp: new Date().toISOString(),
+                    source: 'beta-popup',
+                    skillId: skillId || '',
+                    skillName: skillName,
+                    createdAt: new Date()
+                });
+                
+                alert('✅ Danke! Du wirst benachrichtigt, sobald die Vollversion verfügbar ist.');
+                emailInput.value = '';
+            } catch (error) {
+                console.error('Fehler beim Speichern:', error);
+                alert('⚠️ Fehler beim Speichern. Bitte versuche es später erneut.');
+            }
+        }
+        
+        window.sendFeedback = function() {
+            const subject = encodeURIComponent('Feedback zu Rick2Skill Beta');
+            const body = encodeURIComponent('Hallo Samuel,\n\nHier ist mein Feedback:\n\n');
+            window.location.href = `mailto:samuel.bilandzija@gmail.com?subject=${subject}&body=${body}`;
+        }
+
+        // Dark Mode Toggle (wie im Dashboard)
+        window.toggleDarkMode = function () {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute("data-theme") || "light";
+            const newTheme = currentTheme === "light" ? "dark" : "light";
+
+            html.setAttribute("data-theme", newTheme);
+            localStorage.setItem("theme", newTheme);
+
+            const icon = document.querySelector("#skilltreeDarkToggle i");
+            if (icon) {
+                icon.className = newTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
+            }
+        };
+
+        // Load saved theme
+        (function initTheme() {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            document.documentElement.setAttribute("data-theme", savedTheme);
+            const icon = document.querySelector("#skilltreeDarkToggle i");
+            if (icon && savedTheme === "dark") {
+                icon.className = "fas fa-sun";
+            }
+        })();
+
+        window.showFlashcardDeck = () => {
+            document.getElementById('modalTaskTitle').textContent = "Deine Lernkarten";
+            const modalBody = document.getElementById('modalTaskDesc');
+            document.querySelector('.modal-action').style.display = 'none';
+            
+            if(collectedFlashcards.length === 0) {
+                modalBody.innerHTML = "<p style='text-align:center;'>Du hast noch keine Karten gesammelt. Löse Flashcard-Aufgaben!</p>";
+            } else {
+                modalBody.innerHTML = collectedFlashcards.map(card => `
+                    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front">${card.front}</div>
+                            <div class="flashcard-back">${card.back}</div>
+                        </div>
+                    </div>`).join('');
+            }
+            document.getElementById('taskModal').style.display = 'flex';
+        }
+
+        function drawPath() {
+            const nodes = document.querySelectorAll('.level-node-container');
+            const svgPath = document.getElementById('curvedPath');
+            const container = document.getElementById('roadmapLevels');
+            if(nodes.length < 2 || !svgPath) return;
+            let pathD = "";
+            const containerRect = container.getBoundingClientRect();
+            nodes.forEach((node, i) => {
+                const btn = node.querySelector('.level-btn');
+                const rect = btn.getBoundingClientRect();
+                const x = rect.left + rect.width / 2 - containerRect.left;
+                const y = rect.top + rect.height / 2 - containerRect.top;
+                if(i === 0) { pathD += `M ${x} ${y}`; }
+                else {
+                    const prevBtn = nodes[i-1].querySelector('.level-btn');
+                    const prevRect = prevBtn.getBoundingClientRect();
+                    const prevX = prevRect.left + prevRect.width / 2 - containerRect.left;
+                    const prevY = prevRect.top + prevRect.height / 2 - containerRect.top;
+                    pathD += ` C ${prevX} ${prevY + (y - prevY) / 2}, ${x} ${prevY + (y - prevY) / 2}, ${x} ${y}`;
+                }
+            });
+            svgPath.setAttribute('d', pathD);
+            const svgContainer = document.querySelector('.path-svg-container');
+            if (svgContainer) svgContainer.style.height = container.scrollHeight + 'px';
+        }
+
+        window.togglePopover = (id) => {
+            const popover = document.getElementById(id);
+            if (!popover) return;
+            document.querySelectorAll('.task-popover').forEach(p => { if (p.id !== id) p.classList.remove('active'); });
+            const isActive = popover.classList.toggle('active');
+            if (isActive) {
+                const nodeBtn = popover.parentElement;
+                const containerRect = document.querySelector('.roadmap-main').getBoundingClientRect();
+                const popoverRect = popover.getBoundingClientRect();
+                const nodeRect = nodeBtn.getBoundingClientRect();
+                if (nodeRect.right + popoverRect.width > containerRect.right) {
+                    popover.style.left = 'auto'; popover.style.right = '110px'; popover.classList.add('pop-left');
+                } else {
+                    popover.style.right = 'auto'; popover.style.left = '110px'; popover.classList.remove('pop-left');
+                }
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => { if(user) loadPage(); else location.href = "login.html"; });
+        window.addEventListener('resize', drawPath);
+    </script>
+</body>
+</html>

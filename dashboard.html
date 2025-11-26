@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://www.googleapis.com https://*.googleapis.com https://*.firebaseapp.com https://*.firebaseio.com;">
+  <title>Dashboard - Rick2Skill</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .badge.locked {
+      position: relative;
+      cursor: help;
+    }
+    .badge.locked:hover::after {
+      content: attr(data-requirement);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      margin-bottom: 8px;
+      z-index: 1000;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .badge.locked:hover::before {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: rgba(0, 0, 0, 0.9);
+      margin-bottom: 2px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    
+  </style>
+</head>
+<body class="dashboard-body">
+
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="logo">
+        <img src="rick-happy-removebg.png" alt="Rick" class="logo-icon" />
+        <h1>Rick<span class="highlight-2">2</span>Skill</h1>
+      </div>
+      <div class="user-info">
+        <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+          <i class="fas fa-moon"></i>
+        </div>
+        <span class="user-greeting">Hey <span id="userName">...</span>! 👋</span>
+        <button class="logout-btn" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dashboard -->
+  <main class="dashboard-main">
+    <!-- Rick Motivation Section -->
+    <section class="motivation-section">
+      <div class="motivation-container">
+        <div class="progress-ring-container">
+          <svg class="progress-ring" width="180" height="180">
+            <circle class="progress-ring-circle-bg" cx="90" cy="90" r="80"></circle>
+            <circle class="progress-ring-circle" cx="90" cy="90" r="80" id="progressCircle"></circle>
+          </svg>
+          <img src="rick-relaxed.jpg" alt="Rick" class="rick-avatar" />
+          <div class="level-badge-float"><span id="userLevel">3</span></div>
+        </div>
+
+        <div class="speech-bubble glassmorphism">
+          <p id="motivationText"></p>
+          <div class="speech-arrow"></div>
+        </div>
+      </div>
+
+      <div class="level-display">
+        <div class="level-info">
+          <i class="fas fa-bolt level-icon"></i>
+          <div>
+            <h3>Level <span id="userLevelDisplay">3</span></h3>
+            <p class="level-title">Fortgeschrittener Lerner</p>
+            <div class="xp-bar">
+              <div class="xp-fill" id="xpFill" style="width: 65%"></div>
+            </div>
+            <span class="xp-text">
+              <span id="userXP"></span> / <span id="nextLevelXP">100</span> XP
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Stats Bar -->
+    <section class="stats-bar">
+      <div class="stat-item" data-stat="skills">
+        <div class="stat-icon-wrapper"><i class="fas fa-bullseye stat-icon"></i></div>
+        <span class="stat-label">Aktive Skills</span>
+        <span class="stat-value"
+          ><span class="counter" data-target="0" id="activeSkills">0</span>/
+          <span id="maxSkills">2</span></span
+        >
+      </div>
+
+      <div class="stat-item" data-stat="tasks">
+        <div class="stat-icon-wrapper tasks"><i class="fas fa-trophy stat-icon"></i></div>
+        <span class="stat-label">Tasks erledigt</span>
+        <span class="stat-value counter" data-target="15" id="completedTasks">0</span>
+      </div>
+
+      <div class="stat-item" data-stat="streak">
+        <div class="stat-icon-wrapper streak"><i class="fas fa-fire stat-icon"></i></div>
+        <span class="stat-label">Streak</span>
+        <span class="stat-value"
+          ><span class="counter" data-target="7" id="streakDays">0</span> Tage</span
+        >
+        <canvas id="streakChart" width="100" height="40"></canvas>
+      </div>
+
+      <div class="stat-item" data-stat="coins">
+        <div class="stat-icon-wrapper coins"><i class="fas fa-coins stat-icon"></i></div>
+        <span class="stat-label">Coins</span>
+        <span class="stat-value counter" data-target="120" id="userCoins">0</span>
+      </div>
+    </section>
+
+    <!-- Achievements -->
+    <section class="achievements-section">
+      <h2 class="section-title">
+        <i class="fas fa-medal"></i> Deine Badges
+      </h2>
+      <div class="badges-container">
+        <div class="badge locked" id="badge-starter" data-requirement="1 Aufgabe abschließen">
+          <i class="fas fa-seedling"></i>
+          <span>Starter</span>
+        </div>
+        <div class="badge locked" id="badge-streak" data-requirement="1 Tag Streak">
+          <i class="fas fa-fire"></i>
+          <span>Streak</span>
+        </div>
+        <div class="badge locked" id="badge-dedicated" data-requirement="5 Aufgaben erledigt">
+          <i class="fas fa-star"></i>
+          <span>Dedicated</span>
+        </div>
+        <div class="badge locked" id="badge-master" data-requirement="Einen Skill zu 100% abschließen">
+          <i class="fas fa-crown"></i>
+          <span>Master</span>
+        </div> 
+      </div>
+    </section>
+
+    <!-- Skill-Trees -->
+    <section class="skill-trees-section">
+      <h2 class="section-title"><i class="fas fa-tree"></i> Deine Skill-Trees</h2>
+
+      <div class="skill-trees-grid" id="skillTreesGrid"></div>
+
+      <div class="upgrade-cta" id="upgradeCTA" style="display: none">
+        <div class="upgrade-content">
+          <i class="fas fa-lock upgrade-icon"></i>
+          <h3>Limit erreicht!</h3>
+          <p>Du hast alle 3 Free Skill-Trees erstellt.</p>
+          <button class="upgrade-btn" onclick="window.location.href='#pricing'">
+            <i class="fas fa-rocket"></i> Upgrade zu Premium
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal for New Skill-Tree -->
+  <div class="modal-overlay" id="newSkillModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>
+          <i class="fas fa-magic"></i> Neuer Skill-Tree erstellen
+        </h2>
+        <button class="modal-close" onclick="closeModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form class="skill-form" id="skillForm" onsubmit="createSkillTree(event)">
+        <div class="form-group">
+          <label><i class="fas fa-lightbulb"></i> Welchen Skill willst du meistern? *</label>
+          <input
+            type="text"
+            id="skillName"
+            name="skillName"
+            placeholder="z.B. Python Programmierung, Gitarre spielen..."
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-calendar-alt"></i> In welcher Zeit willst du es schaffen? *</label>
+          <div class="radio-group">
+            <label class="radio-option"
+              ><input type="radio" name="timeframe" value="1" required /><span>1 Monat</span></label
+            >
+            <label class="radio-option"
+              ><input type="radio" name="timeframe" value="3" /><span>3 Monate</span></label
+            >
+            <label class="radio-option"
+              ><input type="radio" name="timeframe" value="6" /><span>6+ Monate</span></label
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-chart-line"></i> Deine Vorkenntnisse? *</label>
+          <div class="level-selector">
+            <div class="level-circle" data-level="1" onclick="selectLevel(1)">1</div>
+            <div class="level-circle" data-level="2" onclick="selectLevel(2)">2</div>
+            <div class="level-circle" data-level="3" onclick="selectLevel(3)">3</div>
+            <div class="level-circle" data-level="4" onclick="selectLevel(4)">4</div>
+            <div class="level-circle" data-level="5" onclick="selectLevel(5)">5</div>
+          </div>
+          <input type="hidden" id="priorKnowledge" name="priorKnowledge" required />
+          <p class="level-hint">1 = Absoluter Anfänger, 5 = Fortgeschritten</p>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-star"></i> Warum willst du das lernen? *</label>
+          <div class="radio-group">
+            <label class="radio-option"
+              ><input type="radio" name="goal" value="hobby" required /><span>🎨 Hobby / Interesse</span></label
+            >
+            <label class="radio-option"
+              ><input type="radio" name="goal" value="career" /><span>💼 Karriere / Job</span></label
+            >
+            <label class="radio-option"
+              ><input type="radio" name="goal" value="project" /><span>🚀 Projekt / Startup</span></label
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-clock"></i> Wie viel Zeit hast du pro Woche? *</label>
+          <div class="radio-group">
+            <label class="radio-option"
+              ><input type="radio" name="weeklyHours" value="1-3" required /><span>1-3 Stunden</span></label
+            >
+            <label class="radio-option"
+              ><input type="radio" name="weeklyHours" value="4-7" /><span>4-7 Stunden</span></label
+            >
+            <label class="radio-option"
+              ><input type="radio" name="weeklyHours" value="8+" /><span>8+ Stunden</span></label
+            >
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="closeModal()">
+            <i class="fas fa-times"></i> Abbrechen
+          </button>
+          <button type="submit" class="btn-primary">
+            <i class="fas fa-magic"></i> Rick zaubert!
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rick Zaubert Loading Screen -->
+  <div class="rick-magic-overlay" id="rickMagicScreen">
+    <div class="magic-content">
+      <img src="magic_sloth_zaubernd.jpg" alt="Rick zaubert" class="magic-rick" />
+      <div class="magic-sparkles">✨✨✨</div>
+      <h2 class="magic-text">Rick zaubert deinen Lernplan...</h2>
+      <div class="magic-loader">
+        <div class="magic-dot"></div>
+        <div class="magic-dot"></div>
+        <div class="magic-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase & Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut,
+      setPersistence,
+      browserLocalPersistence,
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      query,
+      where,
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+
+    // Firebase Config (public - security via Firestore Rules)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDF2qsdE0bbpI_ANm5Goh0SmoWarrzOGYQ",
+      authDomain: "road2skill-af55a.firebaseapp.com",
+      projectId: "road2skill-af55a",
+      storageBucket: "road2skill-af55a.firebasestorage.app",
+      messagingSenderId: "533346184642",
+      appId: "1:533346184642:web:fe1d644238b6b1ef85fa5b",
+      measurementId: "G-JVTCCDR8XQ",
+    };
+    
+    // Import utilities for security (dynamically)
+    let sanitizeInput, isValidEmail;
+    (async () => {
+      try {
+        const utils = await import('./utils.js');
+        sanitizeInput = utils.sanitizeInput;
+        isValidEmail = utils.isValidEmail;
+      } catch (e) {
+        // Fallback if utils.js not available
+        sanitizeInput = (str, max) => (typeof str === 'string' ? str.trim().replace(/[<>]/g, '').substring(0, max || 1000) : '');
+        isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      }
+    })();
+    
+    const XP_PER_LEVEL = 100;
+    let totalXP = 0; // Global, damit du in anderen Funktionen darauf zugreifen kannst
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => console.log("✅ Auth Persistence aktiviert!"))
+      .catch((error) => console.error("❌ Persistence Error:", error));
+
+    const db = getFirestore(app);
+
+
+    async function updateXPAndLevel() {
+      const q = query(collection(db, "skilltrees"), where("user", "==", auth.currentUser.email));
+      const snapshot = await getDocs(q);
+      
+      totalXP = 0;
+      snapshot.forEach(doc => { totalXP += parseInt(doc.data().xp || 0); });
+
+      // Level (ab 0XP = 1, ab 100XP = 2 usw.)
+      const userLevel = Math.floor(totalXP / XP_PER_LEVEL) + 1;
+      const xpForThisLevel = totalXP % XP_PER_LEVEL;
+
+      // In dein Dashboard schreiben
+      document.getElementById("userLevel").textContent = userLevel;
+      document.getElementById("userLevelDisplay").textContent = userLevel;
+      document.getElementById("userXP").textContent = xpForThisLevel;
+      document.getElementById("nextLevelXP").textContent = XP_PER_LEVEL;
+
+      const levelProgressPercent = Math.min(
+        100,
+        Math.round((xpForThisLevel / XP_PER_LEVEL) * 100)
+      );
+      document.getElementById("xpFill").style.width = `${levelProgressPercent}%`;
+      renderProgressRing(levelProgressPercent);
+}
+    
+
+    // Auth Check
+    onAuthStateChanged(auth, (user) => {
+      console.log("🔍 Auth State:", user ? user.email : "Kein User");
+
+      if (user) {
+        console.log("✅ User authenticated!");
+        updateXPAndLevel(); 
+        initDashboard(user);
+      } else {
+        console.log("❌ Redirect zu Login");
+        window.location.href = "login.html";
+      }
+    });
+
+    // Dashboard Init
+    function initDashboard(user) {
+      console.log("🎨 Init Dashboard:", user.email);
+
+      let userName =
+        localStorage.getItem("userName") ||
+        user.displayName ||
+        user.email.split("@")[0];
+      userName = userName.split(" ")[0];
+
+      console.log("👤 User Name:", userName);
+
+      document.getElementById("userName").textContent = userName;
+      document.querySelectorAll("#userNameDisplay").forEach((el) => {
+        el.textContent = userName;
+      });
+      localStorage.setItem("userName", userName);
+      localStorage.setItem("userEmail", user.email);
+
+      loadUserSkillTrees();
+
+      setTimeout(() => {
+        rotateQuote();
+        animateCounters();
+        updateProgressRing();
+        drawStreakChart();
+        updateBadges();
+      }, 300);
+    }
+
+    // Logout
+    window.logout = async function () {
+      try {
+        await signOut(auth);
+        localStorage.clear();
+        window.location.href = "login.html";
+      } catch (error) {
+        console.error("Logout Error:", error);
+      }
+    };
+
+    // Load Skill Trees for logged user from Firestore
+    async function loadUserSkillTrees() {
+      const q = query(collection(db, "skilltrees"), where("user", "==", auth.currentUser.email));
+      const snapshot = await getDocs(q);
+      const skillTrees = [];
+      snapshot.forEach((doc) => {
+        skillTrees.push({ id: doc.id, ...doc.data() });
+      });
+
+      renderSkillTrees(skillTrees);
+      updateDashboardStats(skillTrees);
+      updateXPAndLevel(); // Aktualisiere Level-Anzeige nach dem Laden
+      updateBadges();
+      animateCounters();
+    }
+
+    function updateDashboardStats(skillTrees) {
+      const plan = (localStorage.getItem("userPlan") || "free").toLowerCase();
+      const maxSkillsEl = document.getElementById("maxSkills");
+      if (maxSkillsEl) {
+        maxSkillsEl.textContent = plan === "premium" ? "∞" : "3";
+      }
+
+      let coins = 0;
+      let completedTasks = 0;
+      let streak = 0;
+      let activeSkills = 0;
+
+      skillTrees.forEach((tree) => {
+        if (tree.archived) return;
+        activeSkills += 1;
+        coins += parseInt(tree.coins || 0);
+        streak = Math.max(streak, parseInt(tree.streak || 0));
+        completedTasks += calculateCompletedTasks(tree);
+      });
+
+      const stats = [
+        { id: "activeSkills", value: activeSkills },
+        { id: "completedTasks", value: completedTasks },
+        { id: "streakDays", value: streak },
+        { id: "userCoins", value: coins },
+      ];
+
+      stats.forEach(({ id, value }) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute("data-target", value);
+        el.textContent = value;
+      });
+    }
+
+    function calculateCompletedTasks(tree) {
+      let count = 0;
+      
+      // Zuerst prüfe ob tasksCompleted direkt gesetzt ist
+      if (typeof tree.tasksCompleted === "number" && tree.tasksCompleted > 0) {
+        count = tree.tasksCompleted;
+      }
+      
+      // Dann zähle aus den Levels (kann höher sein)
+      if (Array.isArray(tree.levels)) {
+        const fromLevels = tree.levels.reduce((total, level) => {
+          if (!Array.isArray(level.tasks)) return total;
+          return total + level.tasks.filter((task) => task.completed).length;
+        }, 0);
+        count = Math.max(count, fromLevels);
+      }
+      
+      return count;
+    }
+
+
+    function getTreeStats(tree) {
+      const levels = Array.isArray(tree.levels) ? tree.levels : [];
+      let totalTasks = 0;
+      let completedTasks = 0;
+
+      // Berechne Fortschritt basierend auf abgeschlossenen Levels (wie in skilltree.html)
+      const totalLevels = levels.length;
+      const completedLevels = levels.filter(l => l.status === 'completed').length;
+      const progress = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0;
+
+      // Zähle Tasks für die Anzeige
+      levels.forEach((level) => {
+        if (!Array.isArray(level.tasks)) return;
+        totalTasks += level.tasks.length;
+        completedTasks += level.tasks.filter((task) => task.completed).length;
+      });
+
+      // Falls tasksCompleted direkt gesetzt ist, verwende den höheren Wert
+      if (typeof tree.tasksCompleted === "number") {
+        completedTasks = Math.max(completedTasks, tree.tasksCompleted);
+      }
+
+      return {
+        progress: Math.max(0, Math.min(100, progress)),
+        totalTasks,
+        completedTasks,
+        streak: parseInt(tree.streak || 0, 10) || 0,
+      };
+    }
+
+    // Render Skill Trees on Dashboard
+    function renderSkillTrees(skillTrees) {
+      const grid = document.getElementById("skillTreesGrid");
+      grid.innerHTML = "";
+
+      skillTrees.forEach((tree, index) => {
+        const card = createSkillTreeCard(tree, index);
+        grid.appendChild(card);
+
+        setTimeout(() => {
+          card.classList.add("appear");
+        }, index * 100);
+      });
+
+      const maxSkills = 2; // Beta: Maximal 2 Skills
+      const canAddMore =
+        maxSkills === Infinity || skillTrees.length < maxSkills;
+
+      const plusCard = createPlusCard(canAddMore);
+      grid.appendChild(plusCard);
+
+      setTimeout(() => {
+        plusCard.classList.add("appear");
+      }, skillTrees.length * 100);
+
+      if (!canAddMore) {
+        document.getElementById("upgradeCTA").style.display = "block";
+      } else {
+        document.getElementById("upgradeCTA").style.display = "none";
+      }
+    }
+
+    // Create Skill Tree Card
+    function createSkillTreeCard(tree, index) {
+      const stats = getTreeStats(tree);
+      const tasksLabel =
+        stats.totalTasks > 0
+          ? `${stats.completedTasks}/${stats.totalTasks}`
+          : `${stats.completedTasks}`;
+
+      const card = document.createElement("div");
+      card.className = "skill-tree-card";
+      // Bei Card Klick statt Modal:
+      card.onclick = () => window.location.href = `skilltree.html?id=${tree.id}`;
+      card.innerHTML = `
+              <div class="skill-card-header">
+                  <div class="skill-icon-large">${tree.emoji || "🎯"}</div>
+              </div>
+              <h3 class="skill-name">${tree.name || "undefined"}</h3>
+              <div class="skill-progress">
+                  <svg class="progress-circle" viewBox="0 0 36 36">
+                      <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                      <path class="circle" stroke-dasharray="${
+                        stats.progress
+                      }, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                      <text x="18" y="20.35" class="percentage">${stats.progress}%</text>
+                  </svg>
+              </div>
+              <div class="skill-stats">
+                  <span><i class="fas fa-fire"></i> ${stats.streak} Tage</span>
+                  <span><i class="fas fa-check"></i> ${tasksLabel} Tasks</span>
+              </div>
+          `;
+      return card;
+    }
+
+    // Create Plus Card
+    function createPlusCard(canAdd) {
+      const card = document.createElement("div");
+      card.className = canAdd
+        ? "skill-tree-card add-card"
+        : "skill-tree-card add-card locked";
+      card.onclick = canAdd ? openModal : showUpgradeMessage;
+      card.innerHTML = `
+              <div class="add-icon-wrapper">
+                  <i class="fas ${canAdd ? "fa-plus" : "fa-lock"}"></i>
+              </div>
+              <p class="add-text">${
+                canAdd ? "Neuer Skill-Tree" : "Premium benötigt"
+              }</p>
+          `;
+      return card;
+    }
+
+    // Modal functions
+    window.openModal = function () {
+      document.getElementById("newSkillModal").classList.add("active");
+      document.body.style.overflow = "hidden";
+    };
+    window.closeModal = function () {
+      document.getElementById("newSkillModal").classList.remove("active");
+      document.getElementById("skillForm").reset();
+      document.querySelectorAll(".level-circle").forEach((circle) => {
+        circle.classList.remove("selected");
+      });
+      document.body.style.overflow = "auto";
+    };
+
+    // Level selector
+    window.selectLevel = function (level) {
+      document.getElementById("priorKnowledge").value = level;
+      document.querySelectorAll(".level-circle").forEach((circle, index) => {
+        if (index < level) {
+          circle.classList.add("selected");
+        } else {
+          circle.classList.remove("selected");
+        }
+      });
+    };
+
+    // Create skill tree
+    window.createSkillTree = async function (event) {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const skillName = formData.get("skillName") || "";
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Nicht eingeloggt!");
+        return;
+    }
+      // Sanitize all inputs
+      const sanitizedName = sanitizeInput(skillName, 200);
+      const sanitizedGoal = sanitizeInput(formData.get("goal") || "", 200);
+      const sanitizedTimeframe = sanitizeInput(formData.get("timeframe") || "", 10);
+      const sanitizedWeeklyHours = sanitizeInput(formData.get("weeklyHours") || "", 20);
+      const priorKnowledge = parseInt(document.getElementById("priorKnowledge").value) || 1;
+      
+      // Validate inputs
+      if (!sanitizedName || sanitizedName.length < 2) {
+        alert("Bitte gib einen gültigen Skill-Namen ein (mindestens 2 Zeichen).");
+        return;
+      }
+      
+      const skillTree = {
+        name: sanitizedName,
+        timeframe: sanitizedTimeframe,
+        priorKnowledge: Math.max(1, Math.min(5, priorKnowledge)), // Clamp between 1-5
+        goal: sanitizedGoal,
+        weeklyHours: sanitizedWeeklyHours,
+        emoji: getSmartEmoji(sanitizedName),
+        progress: 0,
+        level: 1,
+        streak: 0,
+        tasksCompleted: 0,
+        coins: 0,
+        xp: 0,
+        createdAt: new Date().toISOString(),
+        user: auth.currentUser.email, // Already validated by Firebase Auth
+      };
+
+      await addDoc(collection(db, "skilltrees"), skillTree);
+
+      closeModal();
+
+      // Rick zaubert animation
+      showRickMagic(skillTree);
+    };
+
+    // Rick zaubert animation
+    function showRickMagic(skillTree) {
+      const magicScreen = document.getElementById("rickMagicScreen");
+      magicScreen.classList.add("active");
+      document.body.style.overflow = "hidden";
+      setTimeout(() => {
+        magicScreen.classList.remove("active");
+        document.body.style.overflow = "auto";
+        setTimeout(() => {
+          loadUserSkillTrees();
+        }, 300);
+        setTimeout(() => {
+          alert(
+            `🎉 Skill-Tree "${skillTree.name}" wurde erstellt!\n\n🦥 Rick hat deinen Lernplan gezaubert!`
+          );
+        }, 500);
+      }, 3000);
+    }
+
+    // Helper: Smart emoji function
+    function getSmartEmoji(skillName) {
+      skillName = skillName || "";
+      const skillLower = skillName.toLowerCase();
+
+      const emojiMap = {
+        programmieren: "💻",
+        coding: "💻",
+        python: "🐍",
+        javascript: "📜",
+        web: "🌐",
+        app: "📱",
+        software: "💾",
+        code: "💻",
+        html: "🌐",
+        css: "🎨",
+        react: "⚛️",
+        java: "☕",
+        "c++": "⚙️",
+        marketing: "📈",
+        business: "💼",
+        vertrieb: "💰",
+        sales: "💵",
+        management: "👔",
+        startup: "🚀",
+        excel: "📊",
+        powerpoint: "📊",
+        design: "🎨",
+        photoshop: "🖼️",
+        grafik: "🎨",
+        ui: "🎨",
+        ux: "📐",
+        kunst: "🎭",
+        drawing: "✏️",
+        illustration: "🖌️",
+        englisch: "🇬🇧",
+        spanish: "🇪🇸",
+        französisch: "🇫🇷",
+        deutsch: "🇩🇪",
+        sprache: "🗣️",
+        language: "🌍",
+        japanisch: "🇯🇵",
+        gitarre: "🎸",
+        guitar: "🎸",
+        piano: "🎹",
+        musik: "🎵",
+        gesang: "🎤",
+        produktion: "🎧",
+        audio: "🔊",
+        fitness: "🏋️",
+        yoga: "🧘",
+        laufen: "🏃",
+        sport: "⚽",
+        gym: "💪",
+        training: "🏋️",
+        fotografie: "📸",
+        photo: "📷",
+        video: "🎬",
+        film: "🎥",
+        editing: "✂️",
+        schnitt: "🎬",
+        mathe: "🔢",
+        physik: "⚛️",
+        chemie: "🧪",
+        biologie: "🧬",
+        wissenschaft: "🔬",
+        kochen: "👨‍🍳",
+        backen: "🍰",
+        garten: "🌱",
+        schreiben: "✍️",
+        lesen: "📚",
+        meditation: "🧘",
+        schach: "♟️",
+      };
+
+      for (const [keyword, emoji] of Object.entries(emojiMap)) {
+        if (skillLower.includes(keyword)) {
+          return emoji;
+        }
+      }
+
+      const fallbackEmojis = ["🎯", "🚀", "⭐", "💡", "🌟", "✨", "🔥", "💪"];
+      return fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)];
+    }
+
+    // Open Skill Tree
+    window.openSkillTree = function (index) {
+      alert("Skill-Tree Detail-Seite kommt bald! 🚀");
+    };
+
+    // Show Upgrade Message
+    function showUpgradeMessage() {
+      alert("🔒 Du hast das Free-Limit erreicht!\n\nUpgrade zu Premium für Unlimited Skill-Trees!");
+    }
+
+    // Unlock Animation
+    function playUnlockAnimation() {
+      const flash = document.createElement("div");
+      flash.className = "unlock-flash";
+      document.body.appendChild(flash);
+
+      setTimeout(() => {
+        flash.remove();
+      }, 800);
+    }
+
+    // Animate Counters
+    function animateCounters() {
+      document.querySelectorAll(".counter").forEach((counter) => {
+        const target = parseInt(counter.getAttribute("data-target"));
+        let current = 0;
+        const increment = target / 50;
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= target) {
+            counter.textContent = target;
+            clearInterval(timer);
+          } else {
+            counter.textContent = Math.floor(current);
+          }
+        }, 20);
+      });
+    }
+
+    function renderProgressRing(percent = 0) {
+      const circle = document.getElementById("progressCircle");
+      if (!circle || !circle.r) return;
+      const radius = circle.r.baseVal.value || 0;
+      const circumference = radius * 2 * Math.PI;
+      const clamped = Math.max(0, Math.min(100, percent));
+      circle.style.strokeDasharray = `${circumference} ${circumference}`;
+      circle.style.strokeDashoffset = circumference - (clamped / 100) * circumference;
+    }
+
+    // Update Progress Ring um Rick
+    function updateProgressRing() {
+      const xpEl = document.getElementById("userXP");
+      const maxEl = document.getElementById("nextLevelXP");
+      const xpValue = parseInt((xpEl && xpEl.textContent) || "0", 10);
+      const maxXPValue =
+        parseInt((maxEl && maxEl.textContent) || String(XP_PER_LEVEL), 10) || XP_PER_LEVEL;
+      const percent =
+        maxXPValue > 0 ? Math.min(100, Math.round((xpValue / maxXPValue) * 100)) : 0;
+      renderProgressRing(percent);
+    }
+
+    // Draw Streak Chart
+    function drawStreakChart() {
+      const canvas = document.getElementById("streakChart");
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      const data = [3, 5, 4, 7, 6, 7, 7]; // Dynamisch laden später
+
+      ctx.strokeStyle = "#ff6b6b";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      data.forEach((value, index) => {
+        const x = (index / (data.length - 1)) * canvas.width;
+        const y = canvas.height - (value / 10) * canvas.height;
+
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+
+      ctx.stroke();
+    }
+
+    // Motivational Quotes
+    const quotes = [
+      "Hey {name}! Bereit für deine Lernreise? 🚀",
+      "{name}, du machst das mega! Weiter so! 💪",
+      "Rick glaubt an dich, {name}! 🦥✨",
+      "Heute wird ein guter Tag zum Lernen, {name}! ☀️",
+      "{name}, kleine Schritte = große Erfolge! 🎯",
+      "Du bist auf dem richtigen Weg, {name}! 🔥",
+      "{name}, jede Task bringt dich näher ans Ziel! 🏆",
+      "Rick ist stolz auf dich, {name}! Keep going! 💎",
+      "Gib nicht auf, {name}! Rick ist bei dir! 🦥❤️",
+    ];
+
+    function rotateQuote() {
+      const userName =
+        document.getElementById("userName").textContent || "Champion";
+      const quote =
+        quotes[Math.floor(Math.random() * quotes.length)].replace(
+          /{name}/g,
+          userName
+        );
+      document.getElementById("motivationText").textContent = quote;
+    }
+    rotateQuote();
+    setInterval(rotateQuote, 10000);
+
+    // Dark Mode Toggle
+    window.toggleDarkMode = function () {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute("data-theme");
+      const newTheme = currentTheme === "light" ? "dark" : "light";
+
+      html.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+
+      const icon = document.querySelector(".dark-mode-toggle i");
+      icon.className = newTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
+    };
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    if (savedTheme === "dark") {
+      document.querySelector(".dark-mode-toggle i").className = "fas fa-sun";
+    }
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    window.openSkillTree = async function(id) {
+    // Holt das Dokument von Firestore per ID
+    const ref = doc(db, "skilltrees", id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+        alert("Dieser Skill-Tree existiert nicht mehr!");
+        return;
+    }
+    const data = snap.data();
+
+    // Modal öffnen und befüllen:
+    document.getElementById("skillDetailModal").classList.add("active");
+    document.body.style.overflow = "hidden";
+    document.getElementById("skillDetailContent").innerHTML = `
+        <div>
+        <button style="float:right;" onclick="closeSkillDetail()"><i class="fas fa-times"></i></button>
+        <h2>${data.emoji} ${data.name}</h2>
+        <p><b>Level:</b> ${data.level} &nbsp; <b>Streak:</b> ${data.streak} Tage</p>
+        <p><b>Fortschritt:</b> ${data.progress}%</p>
+        <p><b>Warum?</b> ${data.goal}</p>
+        <p><b>Zeit pro Woche:</b> ${data.weeklyHours}</p>
+        <hr>
+        <div><i>Tasks & Fortschritt kommen hierhin!</i></div>
+        </div>
+    `;
+    };
+    window.closeSkillDetail = function() {
+    document.getElementById("skillDetailModal").classList.remove("active");
+    document.body.style.overflow = "auto";
+    };
+    // 🏆 Badge-System mit Bedingungen
+    async function updateBadges() {
+      // Hole aktuelle Stats
+      const q = query(collection(db, "skilltrees"), where("user", "==", auth.currentUser.email));
+      const snapshot = await getDocs(q);
+      
+      let totalCompletedTasks = 0;
+      let maxStreak = 0;
+      let has100PercentSkill = false;
+      
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        totalCompletedTasks += calculateCompletedTasks(data);
+        maxStreak = Math.max(maxStreak, parseInt(data.streak || 0));
+        
+        // Prüfe ob ein Skill 100% abgeschlossen ist
+        const levels = Array.isArray(data.levels) ? data.levels : [];
+        if (levels.length > 0) {
+          const allLevelsCompleted = levels.every(l => l.status === 'completed');
+          if (allLevelsCompleted) {
+            has100PercentSkill = true;
+          }
+        }
+      });
+      
+      const badges = {
+        'badge-starter': totalCompletedTasks >= 1,
+        'badge-streak': maxStreak >= 1,
+        'badge-dedicated': totalCompletedTasks >= 5,
+        'badge-master': has100PercentSkill
+      };
+      
+      for (const [badgeId, isEarned] of Object.entries(badges)) {
+        const badgeEl = document.getElementById(badgeId);
+        if (badgeEl) {
+          if (isEarned && badgeEl.classList.contains('locked')) {
+            badgeEl.classList.remove('locked');
+            badgeEl.classList.add('earned');
+            badgeEl.style.animation = 'badgeBounce 0.8s ease-out';
+          }
+          
+          // Hover-Tooltip für gesperrte Badges
+          if (badgeEl.classList.contains('locked')) {
+            const requirement = badgeEl.getAttribute('data-requirement') || '';
+            badgeEl.setAttribute('title', `Noch gesperrt - ${requirement}`);
+          }
+        }
+      }
+    }
+
+// Rufe diese Funktion nach dem Laden der User-Daten auf (suche nach 'if (userDoc.exists())' und füge dort ein:)
+// updateBadges(data);
+
+
+
+  </script>
+  <!-- Skill-Tree Detail Modal -->
+    <div class="modal-overlay" id="skillDetailModal">
+    <div class="modal-content" id="skillDetailContent">
+        <!-- Inhalt wird per JS gefüllt -->
+    </div>
+    </div>
+
+</body>
+</html>

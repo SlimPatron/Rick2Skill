@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Rick2Skill</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen">
+        <div class="loading-content">
+            <img src="rick-happy-removebg.png" alt="Rick lädt" class="loading-rick">
+            <h2>Rick zaubert deinen Lernpfad...</h2>
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <a href="index.html" style="text-decoration: none; color: inherit;">
+                Rick<span class="highlight-2">2</span>Skill
+            </a>
+        </div>
+        <div class="nav-buttons">
+            <a href="index.html">Zurück zur Startseite</a>
+        </div>
+    </nav>
+
+    <!-- Login/Register Section -->
+    <section class="auth-section">
+        <div class="auth-container">
+            <!-- Tab-Navigation -->
+            <div class="auth-tabs">
+                <button class="tab-button active" data-tab="login">Anmelden</button>
+                <button class="tab-button" data-tab="register">Registrieren</button>
+            </div>
+
+            <!-- Login Form -->
+            <div class="auth-form" id="login-form">
+                <h2>Willkommen zurück! 👋</h2>
+                <p class="form-subtitle">Melde dich an und erstelle deinen Skill-Tree mit Rick</p>
+                
+                <form id="login">
+                    <div class="form-group">
+                        <label for="login-email">E-Mail</label>
+                        <input type="email" id="login-email" required placeholder="deine@email.de">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="login-password">Passwort</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    
+                    <button type="submit" class="auth-button">Anmelden</button>
+                </form>
+                
+                <p class="form-footer">
+                    <a href="#" class="forgot-password">Passwort vergessen?</a>
+                </p>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form hidden" id="register-form">
+                <h2>Starte mit Rick! 🚀</h2>
+                <p class="form-subtitle">Erstelle deinen Account und beginne deine Lernreise</p>
+                
+                <form id="register">
+                    <div class="form-group">
+                        <label for="register-name">Name</label>
+                        <input type="text" id="register-name" required placeholder="Dein Name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-email">E-Mail</label>
+                        <input type="email" id="register-email" required placeholder="deine@email.de">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-password">Passwort</label>
+                        <input type="password" id="register-password" required placeholder="Mindestens 6 Zeichen">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-password-confirm">Passwort bestätigen</label>
+                        <input type="password" id="register-password-confirm" required placeholder="Passwort wiederholen">
+                    </div>
+                    
+                    <button type="submit" class="auth-button">Registrieren</button>
+                </form>
+                
+                <p class="form-footer">
+                    Mit der Registrierung akzeptierst du unsere <a href="#">AGB</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      // ✅ ALLE IMPORTS GANZ OBEN!
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+      import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+      
+      // Firebase Config (public - security via Firestore Rules)
+      const firebaseConfig = {
+        apiKey: "AIzaSyDF2qsdE0bbpI_ANm5Goh0SmoWarrzOGYQ",
+        authDomain: "road2skill-af55a.firebaseapp.com",
+        projectId: "road2skill-af55a",
+        storageBucket: "road2skill-af55a.firebasestorage.app",
+        messagingSenderId: "533346184642",
+        appId: "1:533346184642:web:fe1d644238b6b1ef85fa5b",
+        measurementId: "G-JVTCCDR8XQ"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      window.firebaseAuth = auth;
+      
+      console.log('🔥 Firebase connected on Login page!');
+
+      // Tab-Switching
+      const tabButtons = document.querySelectorAll('.tab-button');
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const tab = button.dataset.tab;
+          
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+          
+          if (tab === 'login') {
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+          } else {
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+          }
+        });
+      });
+
+      // ✅ REGISTER FUNKTION (KORRIGIERT!)
+      document.getElementById('register').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('register-name').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        const passwordConfirm = document.getElementById('register-password-confirm').value;
+        
+        // Passwort-Check
+        if (password !== passwordConfirm) {
+          alert('❌ Passwörter stimmen nicht überein!');
+          return;
+        }
+        
+        if (password.length < 6) {
+          alert('❌ Passwort muss mindestens 6 Zeichen haben!');
+          return;
+        }
+        
+        try {
+          // User erstellen
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+
+          // ✅ Name als displayName speichern
+          await updateProfile(user, {
+              displayName: name
+          });
+
+          console.log('✅ User erstellt:', user.email);
+          console.log('✅ Name gespeichert:', name);
+          
+          // Email-Verifizierung senden
+          await sendEmailVerification(user);
+          console.log('📧 Verifizierungs-Email gesendet!');
+          
+          // ✅ NEU: localStorage für neuen User löschen!
+          localStorage.clear();
+
+          alert('🎉 Registrierung erfolgreich!\n\n📧 Wir haben dir eine Bestätigungs-Email geschickt.\n\n⚠️ WICHTIG: Check auch deinen SPAM-Ordner!\n\nBitte öffne die Email und bestätige deinen Account.');
+          
+          // Zurück zu Login-Tab
+          document.querySelector('[data-tab="login"]').click();
+          
+        } catch (error) {
+          console.error('❌ Fehler:', error);
+          if (error.code === 'auth/email-already-in-use') {
+            alert('❌ Diese Email ist bereits registriert!');
+          } else {
+            alert('❌ Fehler: ' + error.message);
+          }
+        }
+      });
+
+      // ✅ LOGIN FUNKTION
+      document.getElementById('login').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            
+            // DEBUG: User-Info loggen
+            console.log('✅ Login erfolgreich:', user.email);
+            console.log('🔍 Email Verified:', user.emailVerified);
+            console.log('👤 Display Name:', user.displayName);
+            
+            // PRÜFE: Email verifiziert?
+            if (!user.emailVerified) {
+                console.log('❌ Email NICHT verifiziert');
+                alert('⚠️ Bitte bestätige zuerst deine E-Mail-Adresse!\n\nSchau in deinem Posteingang nach der Bestätigungs-Email.');
+                return;
+            }
+            
+            console.log('✅ Email verifiziert!');
+            
+            // Check Onboarding Status
+            const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+            console.log('📦 hasSeenOnboarding:', hasSeenOnboarding);
+            
+            if (!hasSeenOnboarding) {
+                console.log('📚 → Onboarding');
+                window.location.href = 'onboarding.html';
+            } else {
+                console.log('👋 → Dashboard');
+                window.location.href = 'dashboard.html';
+            }
+            
+        } catch (error) {
+          console.error('❌ Login Fehler:', error);
+          if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+            alert('❌ Falsche Email oder Passwort!');
+          } else {
+            alert('❌ Fehler: ' + error.message);
+          }
+        }
+      });
+    </script>
+    
+    <script>
+        // Verstecke Loading Screen nach 500ms
+        setTimeout(() => {
+            const loading = document.querySelector('.loading-screen');
+            if (loading) loading.style.display = 'none';
+        }, 500);
+    </script>
+</body>
+</html>

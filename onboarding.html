@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Willkommen - Rick2Skill</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="onboarding-wrapper">
+        <!-- Progress Indicator -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+        
+        <div class="onboarding-container">
+            
+            <!-- SLIDE 1: Pain Point (Der Schmerz) -->
+            <div class="onboarding-screen active" id="screen-1">
+                <div class="pain-visual">
+                    <div class="stuck-emoji">😓</div>
+                    <h1 class="pain-headline">Kennst du das Gefühl?</h1>
+                </div>
+                
+                <div class="pain-list">
+                    <div class="pain-item">❌ Du willst einen Skill lernen, weißt aber nicht WO anfangen</div>
+                    <div class="pain-item">❌ YouTube-Tutorials bringen dich nicht weiter</div>
+                    <div class="pain-item">❌ Kurse kosten Hunderte Euro - ohne Garantie</div>
+                    <div class="pain-item">❌ Du verlierst die Motivation nach 2 Wochen</div>
+                </div>
+                
+                <p class="pain-truth">Die harte Wahrheit: <strong>97% scheitern beim Selbstlernen</strong> – nicht weil sie dumm sind, sondern weil sie <strong>keinen klaren Plan</strong> haben.</p>
+                
+                <button class="onboarding-btn pulse" onclick="nextScreen()">Ich will eine Lösung →</button>
+            </div>
+
+            <!-- SLIDE 2: No Excuses (Dringlichkeit) -->
+            <div class="onboarding-screen" id="screen-2">
+                <img src="rick-happy-removebg.png" alt="Rick" class="onboarding-rick bounce">
+                <h1>Keine Ausreden mehr! 🚀</h1>
+                
+                <div class="urgency-box">
+                    <div class="stat">
+                        <div class="stat-number">365</div>
+                        <div class="stat-label">Tage verschwendet ohne Fortschritt</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">€1,200</div>
+                        <div class="stat-label">Durchschnitt für erfolglose Kurse</div>
+                    </div>
+                </div>
+                
+                <p class="urgency-text">
+                    Jeder Tag ohne strukturierten Plan ist ein <strong>verlorener Tag</strong>.<br>
+                    Während du wartest, lernen andere <strong>systematisch</strong> mit Rick2Skill.
+                </p>
+                
+                <div class="social-proof">
+                    <div class="avatars">
+                        <div class="avatar">👤</div>
+                        <div class="avatar">👤</div>
+                        <div class="avatar">👤</div>
+                        <div class="avatar">+43</div>
+                    </div>
+                    <p>19 Nutzer haben heute ihren Skill-Tree gestartet</p>
+                </div>
+                
+                <button class="onboarding-btn" onclick="nextScreen()">Zeig mir wie →</button>
+            </div>
+
+            <!-- SLIDE 3: The Graph (Visueller Beweis) -->
+            <div class="onboarding-screen graph-screen" id="screen-3">
+                <h1>Mit vs. Ohne Rick2Skill 📈</h1>
+                <p class="graph-subtitle">So sieht dein Lernfortschritt aus:</p>
+                
+                <div class="comparison-container">
+                    <div class="graph-wrapper">
+                        <svg viewBox="0 0 400 300" class="progress-graph">
+                            <!-- Grid Lines -->
+                            <line x1="40" y1="250" x2="380" y2="250" stroke="#e0e0e0" stroke-width="2"/>
+                            <line x1="40" y1="200" x2="380" y2="200" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="5,5"/>
+                            <line x1="40" y1="150" x2="380" y2="150" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="5,5"/>
+                            <line x1="40" y1="100" x2="380" y2="100" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="5,5"/>
+                            <line x1="40" y1="50" x2="380" y2="50" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="5,5"/>
+                            <line x1="40" y1="50" x2="40" y2="250" stroke="#e0e0e0" stroke-width="2"/>
+                            
+                            <!-- Ohne Rick (Flache Kurve - Rot) -->
+                            <path d="M 40 240 Q 150 220, 380 200" 
+                                  fill="none" 
+                                  stroke="#ff6b6b" 
+                                  stroke-width="3"
+                                  stroke-dasharray="8,5"
+                                  class="without-rick"/>
+                            <text x="320" y="190" fill="#ff6b6b" font-size="16" font-weight="bold"
+                            style="text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">Ohne Plan</text>
+
+                            
+                            <!-- Mit Rick (Exponentielle Kurve - Grün) -->
+                            <path d="M 40 240 Q 100 200, 200 120 T 380 30" 
+                                  fill="none" 
+                                  stroke="#51cf66" 
+                                  stroke-width="4"
+                                  class="with-rick"/>
+                            <text x="280" y="60" fill="#f4fce3" font-size="16" font-weight="bold" 
+                            style="text-shadow: 2px 2px 4px rgba(6, 58, 2, 0.8);">Mit Rick2Skill 🚀</text>
+                            
+                            <!-- Labels -->
+                            <text x="10" y="255" fill="#666" font-size="12">0%</text>
+                            <text x="0" y="55" fill="#666" font-size="12">100%</text>
+                            <text x="200" y="280" fill="#666" font-size="12" text-anchor="middle">Zeit →</text>
+                        </svg>
+                    </div>
+                    
+                    <div class="graph-insights">
+                        <div class="insight">
+                            <div class="insight-icon">🐌</div>
+                            <div>
+                                <strong>Ohne Struktur:</strong> Planlos & frustriert.<br>
+                                Nach 3 Monaten: nur 15% Fortschritt.
+                            </div>
+                        </div>
+                        <div class="insight success">
+                            <div class="insight-icon">🚀</div>
+                            <div>
+                                <strong>Mit Rick2Skill:</strong> Klarer Pfad, messbare Erfolge.<br>
+                                Nach 3 Monaten: 80% Fortschritt!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="onboarding-btn" onclick="nextScreen()">Das will ich auch! →</button>
+            </div>
+
+            <!-- SLIDE 4: How it Works (Einfachheit zeigen) -->
+            <div class="onboarding-screen" id="screen-4">
+                <h1>So einfach geht's 💡</h1>
+                <p class="steps-subtitle">3 Schritte zu deinem Skill-Tree</p>
+                
+                <div class="steps-visual">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-icon">🎯</div>
+                        <h3>Ziel eingeben</h3>
+                        <p>"Ich will Italienisch kochen lernen"</p>
+                    </div>
+                    
+                    <div class="arrow">→</div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-icon">🦥✨</div>
+                        <h3>Rick zaubert</h3>
+                        <p>KI erstellt strukturierten Lernpfad in 10 Sekunden</p>
+                    </div>
+                    
+                    <div class="arrow">→</div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-icon">📈</div>
+                        <h3>Schritt für Schritt folgen</h3>
+                        <p>Klare Levels, messbare Erfolge!</p>
+                    </div>
+                </div>
+                
+                <div class="testimonial">
+                    <p>"In 2 Wochen mit Rick2Skill mehr gelernt als in einem Jahren ohne richtigen Plan!"</p>
+                    <span>– Sarah, hat Journaling & Meditation gelernt </span>
+                </div>
+                
+                <button class="onboarding-btn" onclick="nextScreen()">Los geht's! 🚀</button>
+            </div>
+
+                 <!-- SLIDE 5: Beta Start -->
+            <div class="onboarding-screen pricing-screen" id="screen-5">
+                <h1>Willkommen bei Rick2Skill Beta! 🎉</h1>
+                <p class="pricing-subtitle">Teste die Plattform jetzt kostenlos</p>
+                
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 20px; margin: 2rem 0;">
+                    <h2 style="color: white; margin-top: 0;">Beta-Features:</h2>
+                    <ul style="text-align: left; font-size: 1.1rem; line-height: 2;">
+                        <li>✓ Bis zu 2 Skill-Trees erstellen</li>
+                        <li>✓ Bis zu 30% Fortschritt pro Skill</li>
+                        <li>✓ Alle Basis-Features testen</li>
+                        <li>✓ Feedback geben und mitgestalten</li>
+                    </ul>
+                </div>
+                
+                <p style="font-size: 1.1rem; color: #666; margin: 2rem 0;">
+                    Wir sind noch in der Beta-Phase und freuen uns auf dein Feedback!<br>
+                    Die Vollversion kommt bald mit noch mehr Features.
+                </p>
+                
+                <button class="onboarding-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem 3rem; font-size: 1.2rem;" onclick="startBeta()">
+                    Jetzt starten! 🚀
+                </button>
+            </div>
+   
+
+
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        let currentScreen = 1;
+        const totalScreens = 5;
+
+        // Progress Bar Update
+        function updateProgress() {
+            const progress = (currentScreen / totalScreens) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        window.nextScreen = function() {
+            document.getElementById(`screen-${currentScreen}`).classList.remove('active');
+            currentScreen++;
+            document.getElementById(`screen-${currentScreen}`).classList.add('active');
+            updateProgress();
+            
+            // Animationen triggern
+            if (currentScreen === 3) {
+                animateGraph();
+            }
+        }
+
+        // Graph Animation
+        function animateGraph() {
+            const withRick = document.querySelector('.with-rick');
+            const withoutRick = document.querySelector('.without-rick');
+            
+            withRick.style.strokeDasharray = '1000';
+            withRick.style.strokeDashoffset = '1000';
+            withRick.style.animation = 'drawLine 2s ease-out forwards';
+            
+            setTimeout(() => {
+                withoutRick.style.strokeDasharray = '1000';
+                withoutRick.style.strokeDashoffset = '1000';
+                withoutRick.style.animation = 'drawLine 2s ease-out forwards';
+            }, 500);
+        }
+
+        // Beta Start
+        window.startBeta = function() {
+            localStorage.setItem('userPlan', 'beta');
+            localStorage.setItem('hasSeenOnboarding', 'true');
+            localStorage.setItem('skillTreesCreated', '0');
+            localStorage.setItem('maxSkillTrees', '2');
+            
+            console.log('✅ Beta gestartet!');
+            window.location.href = 'dashboard.html';
+        }
+
+        // Fake Countdown (Scarcity)
+        let spotsLeft = 23;
+        setInterval(() => {
+            if (spotsLeft > 10 && Math.random() > 0.7) {
+                spotsLeft--;
+                document.getElementById('spots-left').textContent = `noch ${spotsLeft} Plätze`;
+            }
+        }, 8000);
+
+        updateProgress();
+    </script>
+</body>
+</html>
