@@ -1,4 +1,4 @@
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args)); 
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -46,13 +46,42 @@ export default async function handler(req, res) {
       })
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      return res.status(500).json({ error: 'API request failed', details: data });
+      const errText = await response.text();
+      return res.status(500).json({ error: 'API request failed', details: errText });
     }
 
-    res.status(200).json(data);
+    const data = await response.json();
+
+    // Extrahiere den JSON-String aus der Antwort und parse ihn
+    let rawContent = data.choices?.[0]?.message?.content?.trim();
+
+    if (!rawContent) {
+      return res.status(500).json({ error: 'Keine Daten im Antwortinhalt' });
+    }
+
+    // Versuche den JSON-String zu parsen
+    let result;
+    try {
+      result = JSON.parse(rawContent);
+    } catch (parseError) {
+      // Manchmal sendet die KI ein JSON als String in Anführungszeichen - versuche es zu parsen mit Regex falls nötig
+      const match = rawContent.match(/\{[\s\S]*\}/);
+      if (match) {
+        result = JSON.parse(match[0]);
+      } else {
+        return res.status(500).json({ error: 'Kein gültiges JSON von KI', details: parseError.message });
+      }
+    }
+
+    // Optional: Validierung, ob result.tasks existiert und ein Array ist
+    if (!result.tasks || !Array.isArray(result.tasks)) {
+      return res.status(500).json({ error: 'Ungültige Struktur: tasks fehlt oder ist kein Array' });
+    }
+
+    // Sende das Ergebnis mit tasks an das Frontend
+    res.status(200).json(result);
+
   } catch (error) {
     res.status(500).json({ error: 'Server-Fehler', details: error.message });
   }
