@@ -14,7 +14,7 @@ export async function generateContentProxy(prompt) {
   }
 
   // Anfrage an deinen Backend-Proxy auf Vercel
-  const response = await fetch("https://api-proxy-ecru.vercel.app/generate-content", {
+  const response = await fetch("/api/generate-content", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
